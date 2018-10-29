@@ -2,6 +2,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <signal.h>
+
+
+void controladorSIGINT(int id);
+
+
+void controladorSIGINT(int id){
+	signal(id,controladorSIGINT);
+	printf("Recibida la senal: %d\n",id);
+}
 
 int soyHijo(pid_t* hijosProceso,int n){
 	int i;
@@ -12,6 +22,8 @@ int soyHijo(pid_t* hijosProceso,int n){
 	}
 	return 0;
 }
+
+
 
 void printfArreglo(pid_t* res,int n){
 	int i;
@@ -41,9 +53,31 @@ pid_t* inicializarHijos(int numHijos){
 				printf("El hijo %d tiene el pid %d\n",i+1,res[i]);
 			}
 		}
+		return res;
 	}
 }
+void enviarSenal(int target,int signal){
 
+
+}
+
+void recibirSenales(){
+	int kill666 = 0;
+	int iterar = 1;
+	int pidTarget;
+	int signal;
+	while(iterar != 0){
+		printf("Ingrese el PID del proceso al que desea enviar una señal: \n");
+		scanf("%d",&pidTarget);
+		printf("Ingrese la señal que se enviara al proceso %d: \n",pidTarget);
+		scanf("%d",&signal);
+		enviarSenal(pidTarget,signal);
+		if(getchar()!=10){
+			iterar = 0;
+		}
+	}
+	
+}
 
 int main(int argc,char** argv){
 	int hValue = 0;
@@ -76,6 +110,9 @@ int main(int argc,char** argv){
 		}
 		printf("mflag = %d, hvaule = %d\n",mflag,hValue);
 	}
-	inicializarHijos(hValue);
+	pid_t* hijos= inicializarHijos(hValue);
+	if(!soyHijo(hijos,hValue)){
+//		recibirSenales();
+	}
 	return 0;
 }
