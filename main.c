@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 
 int soyHijo(pid_t* hijosProceso,int n){
 	int i;
@@ -43,9 +44,38 @@ pid_t* inicializarHijos(int numHijos){
 	}
 }
 
-int main(){
+
+int main(int argc,char** argv){
 	int hValue = 0;
 	int mflag = 0;
-	inicializarHijos(4);
+	opterr = 0;
+	int c;
+	int index;
+	while((c = getopt(argc,argv, "mh:")) != -1){
+		switch(c){
+			case 'm':
+				mflag = 1;
+				break;
+			case 'h':
+				sscanf(optarg,"%d", &hValue);
+				break;
+			case '?':
+				if(optopt == 'h'){
+					fprintf(stderr, "Opcion -h requiere un argumento.\n",optopt);
+				}
+				else if(isprint(optopt))
+				{
+					fprintf(stderr, "Opcion desconocida -h.\n",optopt);
+				}
+				else{
+					fprintf(stderr,"Opcion con caracter desconocido.\n",optopt);
+				}
+				return -1;
+			default:
+				abort();
+		}
+		printf("mflag = %d, hvaule = %d\n",mflag,hValue);
+	}
+	inicializarHijos(hValue);
 	return 0;
 }
