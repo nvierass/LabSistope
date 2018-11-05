@@ -4,13 +4,24 @@
 #include <ctype.h>
 #include <signal.h>
 
-
-void controladorSIGINT(int id);
-
-
-void controladorSIGINT(int id){
-	signal(id,controladorSIGINT);
+void controladorSIGINT(int id)
+{
 	printf("Recibida la senal: %d\n",id);
+}
+
+void controladorSIGUSR1(int id)
+{
+	printf("Recibida la señal SIGUSR1: %d.\n",id);
+}
+
+void controladorSIGUSR2(int id)
+{
+	printf("Recibida la señal SIGUSR2: %d.\n",id);
+}
+
+void controladorSIGTERM(int id)
+{
+	printf("Recibida la señal SIGTERM: %d.\n",id);
 }
 
 int soyHijo(pid_t* hijosProceso,int n){
@@ -22,8 +33,6 @@ int soyHijo(pid_t* hijosProceso,int n){
 	}
 	return 0;
 }
-
-
 
 void printfArreglo(pid_t* res,int n){
 	int i;
@@ -80,11 +89,13 @@ void recibirSenales(){
 }
 
 int main(int argc,char** argv){
+	signal(SIGINT,controladorSIGINT);
 	int hValue = 0;
 	int mflag = 0;
 	opterr = 0;
 	int c;
 	int index;
+	kill(getpid(), SIGINT);
 	while((c = getopt(argc,argv, "mh:")) != -1){
 		switch(c){
 			case 'm':
@@ -95,20 +106,19 @@ int main(int argc,char** argv){
 				break;
 			case '?':
 				if(optopt == 'h'){
-					fprintf(stderr, "Opcion -h requiere un argumento.\n",optopt);
+					fprintf(stderr, "Opcion -h requiere un argumento.\n");
 				}
 				else if(isprint(optopt))
 				{
-					fprintf(stderr, "Opcion desconocida -h.\n",optopt);
+					fprintf(stderr, "Opcion desconocida -h.\n");
 				}
 				else{
-					fprintf(stderr,"Opcion con caracter desconocido.\n",optopt);
+					fprintf(stderr,"Opcion con caracter desconocido.\n");
 				}
 				return -1;
 			default:
 				abort();
 		}
-		printf("mflag = %d, hvaule = %d\n",mflag,hValue);
 	}
 	pid_t* hijos= inicializarHijos(hValue);
 	if(!soyHijo(hijos,hValue)){
