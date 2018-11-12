@@ -5,25 +5,25 @@
 #include <signal.h>
 
 
-void controladorSIGINT(int id);
+void controladorSIGTERM(int id);
 void controladorSIGUSR1(int id);
 void controladorSIGUSR2(int id);
+void controladorSIGINT(int id);
 void printfArreglo(pid_t* res,int n);
 pid_t* inicializarHijos(int numHijos, int mflag);
-void controladorSIGTERM(int id);
 void recibirSenales(pid_t *res,int cantHijos);
-void enviarSenal(int target,int senal, pid_t *res);
+void enviarSenal(int target,int senal, pid_t *res, int cantHijos);
 
-int contadorSIGUSR1 =0;
-int contadorSIGINT = 0;
+int contadorSIGUSR1 = 0;
+int contadorSIGTERM = 0;
 
-void controladorSIGINT(int id)
+void controladorSIGTERM(int id)
 {
-	if(contadorSIGINT == 0){
+	if(contadorSIGTERM == 0){
 		printf("\nSoy el hijo con pid %d y estoy vivo aun, no me mates papá :(\n",getpid());
-		contadorSIGINT++;
+		contadorSIGTERM++;
 	}
-	else if(contadorSIGINT==1){
+	else if(contadorSIGTERM==1){
 		exit(0);
 	}
 }
@@ -39,7 +39,8 @@ void controladorSIGUSR1(int id)
 	char  buffer[2][100];
 	snprintf(buffer[1],100," -p %d",getpid());
 	snprintf(buffer[2],100," -c %d",contadorSIGUSR1);
-	char* argv[]={buffer[1],buffer[2],(const char*) NULL};
+	char* argv[]={buffer[1],buffer[2],(char*) NULL};
+	printf("%s\n",buffer[2]);
 	execv("./contador",argv);
 	contadorSIGUSR1 ++;
 }
@@ -62,7 +63,7 @@ void controladorSIGUSR2(int id)
 
 //SIGUSR2: que el proceso hijo al cual se le env´ıa la se˜nal (receptor), cree su propio hijo.
 
-void controladorSIGTERM(int id)
+void controladorSIGINT(int id)
 {
 	printf("Recibida la señal SIGTERM: %d.\n",id);
 	
@@ -115,26 +116,30 @@ pid_t* inicializarHijos(int numHijos, int mflag){
 	}
 }
 
-void enviarSenal(int target,int senal, pid_t *res)
+void enviarSenal(int target,int senal, pid_t *res, int cantHijos)
 {
 	switch(senal)
 	{
+		case 2:
+		{
+			kill(getpid(),SIGINT);
+		}break;
 		case 9:
 		{
-			signal(senal, controladorSIGTERM);
+			kill(getpid(),SIGTERM);
 		}break;
 		case 10:
 		{
-			signal(senal, controladorSIGUSR1);
+			kill(getpid(),SIGUSR1);
 		}break;
 		case 12:
 		{
-			signal(senal, controladorSIGUSR2);
+			kill(getpid(),SIGUSR2);
 		}break;
 		default:
 		{
 			printf("Ingrese una señal valida.\n");
-			//recibirSenales(res);
+			recibirSenales(res, cantHijos);
 		}
 	}
 }
@@ -154,7 +159,7 @@ void recibirSenales(pid_t *res, int cantHijos){
 		printf("La senal %d sera enviada al hijo %d de pid %d\n",signal,pidTarget, res[pidTarget-1]);
 		if(pidTarget > cantHijos || pidTarget <= cantHijos)
 		{
-			enviarSenal(pidTarget,signal, res);
+			enviarSenal(pidTarget, signal, res, cantHijos);
 		}
 		if(getchar()!=10){
 			iterar = 0;
@@ -168,7 +173,6 @@ int main(int argc,char** argv){
 	signal(SIGUSR1, controladorSIGUSR1);
 	signal(SIGUSR2, controladorSIGUSR2);
 	signal(SIGINT, controladorSIGINT);
-	kill(getpid(),SIGUSR1);
 	//manejo de getopt
 	int hValue = 0;
 	int mflag = 0;
