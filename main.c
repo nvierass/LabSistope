@@ -4,6 +4,16 @@
 #include <ctype.h>
 #include <signal.h>
 
+
+void controladorSIGINT(int id);
+void controladorSIGUSR1(int id);
+void controladorSIGUSR2(int id);
+void printfArreglo(pid_t* res,int n);
+pid_t* inicializarHijos(int numHijos, int mflag);
+void controladorSIGTERM(int id);
+void recibirSenales(pid_t *res);
+void enviarSenal(int target,int senal, pid_t *res);
+
 void controladorSIGINT(int id)
 {
 	printf("Recibida la senal: %d\n",id);
@@ -88,11 +98,32 @@ pid_t* inicializarHijos(int numHijos, int mflag){
 		return res;
 	}
 }
-void enviarSenal(int target,int signal, pid_t *res){
-	kill(res[target-1], signal);
+
+void enviarSenal(int target,int senal, pid_t *res)
+{
+	switch(senal)
+	{
+		case 9:
+		{
+			signal(senal, controladorSIGTERM);
+		}break;
+		case 10:
+		{
+			signal(senal, controladorSIGUSR1);
+		}break;
+		case 12:
+		{
+			signal(senal, controladorSIGUSR2);
+		}break;
+		default:
+		{
+			printf("Ingrese una señal valida.\n");
+			recibirSenales(res);
+		}
+	}
 }
 
-void recibirSenales(pid_t *res){
+void recibirSenales(pid_t *res, int cantHijos){
 	int kill666 = 0;
 	int iterar = 1;
 	int pidTarget;
@@ -105,7 +136,10 @@ void recibirSenales(pid_t *res){
 		scanf("%d",&signal);
 		printf("\n");
 		printf("La senal %d sera enviada al hijo %d de pid %d\n",signal,pidTarget, res[pidTarget-1]);
-		enviarSenal(pidTarget,signal, res);
+		if(pidTarget > cantHijos || pidTarget <= cantHijos)
+		{
+			enviarSenal(pidTarget,signal, res);
+		}
 		if(getchar()!=10){
 			iterar = 0;
 		}
@@ -148,12 +182,7 @@ int main(int argc,char** argv){
 	pid_t* hijos= inicializarHijos(hValue, mflag);
 
 	if(!soyHijo(hijos,hValue)){
-		recibirSenales(hijos);
-		//controlador de señales
-		signal(SIGINT,  controladorSIGINT);
-		signal(SIGTERM, controladorSIGTERM);
-		signal(SIGUSR1, controladorSIGUSR1);
-		signal(SIGUSR2, controladorSIGUSR2);
+		recibirSenales(hijos, hValue);
 	}
 	return 0;
 }
