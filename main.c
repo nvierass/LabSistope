@@ -5,13 +5,35 @@
 #include <signal.h>
 
 
-void controladorSIGINT(int id);
-
-
-void controladorSIGINT(int id){
-	signal(id,controladorSIGINT);
-	printf("Recibida la senal: %d\n",id);
+void controladorSIGUSR1(){
+	printf("Recibida la senal: 10.\n");
 }
+
+void controladorSIGUSR2(){
+	printf("Recibida la senal: 12.\n");
+}
+
+void controladorSIGTERM(){
+	printf("Recibida la senal: 15.\n");
+}
+
+void controladorSenales(int id){
+	switch(id){
+		case 10:
+			signal(id,controladorSIGUSR1);
+			break;
+		case 12:
+			signal(id,controladorSIGUSR2);
+			break;
+		case 15:
+			signal(id,controladorSIGTERM);
+			break;
+		default:
+			printf("Senal invalida.\n");
+			break;
+	}
+}
+
 
 int soyHijo(pid_t* hijosProceso,int n){
 	int i;
@@ -85,6 +107,8 @@ int main(int argc,char** argv){
 	opterr = 0;
 	int c;
 	int index;
+	kill(getpid(),12);
+	signal(12,controladorSenales);
 	while((c = getopt(argc,argv, "mh:")) != -1){
 		switch(c){
 			case 'm':
@@ -95,14 +119,14 @@ int main(int argc,char** argv){
 				break;
 			case '?':
 				if(optopt == 'h'){
-					fprintf(stderr, "Opcion -h requiere un argumento.\n",optopt);
+					fprintf(stderr, "Opcion -h requiere un argumento.\n");
 				}
 				else if(isprint(optopt))
 				{
-					fprintf(stderr, "Opcion desconocida -h.\n",optopt);
+					fprintf(stderr, "Opcion desconocida -h.\n");
 				}
 				else{
-					fprintf(stderr,"Opcion con caracter desconocido.\n",optopt);
+					fprintf(stderr,"Opcion con caracter desconocido.\n");
 				}
 				return -1;
 			default:
@@ -110,9 +134,9 @@ int main(int argc,char** argv){
 		}
 		printf("mflag = %d, hvaule = %d\n",mflag,hValue);
 	}
-	pid_t* hijos= inicializarHijos(hValue);
-	if(!soyHijo(hijos,hValue)){
+	//pid_t* hijos = inicializarHijos(hValue);
+	//if(!soyHijo(hijos,hValue)){
 //		recibirSenales();
-	}
+	//}
 	return 0;
 }
