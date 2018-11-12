@@ -65,9 +65,9 @@ void controladorSIGUSR2(int id)
 
 void controladorSIGINT(int id)
 {
-	printf("Recibida la señal SIGTERM: %d.\n",id);
+	printf("\nRecibida la señal SIGINT: %d SOY EL HIJO CON PID :%d.\n",id,getpid());
 	
-	exit(0);
+	printf("sigo funcionando\n");
 }
 
 /* SIGTERM: Se encarga de matar al proceso con el id correspondiente. No obstante, antes de morir
@@ -205,9 +205,9 @@ int main(int argc,char** argv){
 		}
 	}
 	pid_t* hijos= inicializarHijos(hValue, mflag);
-
-	if(!soyHijo(hijos,hValue)){
+	getchar();
+/*	if(!soyHijo(hijos,hValue)){
 		recibirSenales(hijos, hValue);
-	}
+	}*/
 	return 0;
 }
