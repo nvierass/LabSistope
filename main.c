@@ -6,26 +6,32 @@
 
 
 void controladorSIGTERM(int id);
+void controladorKILL(int id);
 void controladorSIGUSR1(int id);
 void controladorSIGUSR2(int id);
 void controladorSIGINT(int id);
-void printfArreglo(pid_t* res,int n);
+int soyHijo(pid_t* hijosProceso,int n);
 pid_t* inicializarHijos(int numHijos, int mflag);
 void recibirSenales(pid_t *res,int cantHijos);
-void enviarSenal(int target,int senal, pid_t *res, int cantHijos);
+void enviarSenal(int target,int senal);
 
 int contadorSIGUSR1 = 0;
-int contadorSIGTERM = 0;
+int contadorSIGINT = 0;
+pid_t* hijos;
+int hValue;
+
+
 
 void controladorSIGTERM(int id)
 {
-	if(contadorSIGTERM == 0){
-		printf("\nSoy el hijo con pid %d y estoy vivo aun, no me mates papá :(\n",getpid());
-		contadorSIGTERM++;
-	}
-	else if(contadorSIGTERM==1){
-		exit(0);
-	}
+	printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
+	exit(0);
+}
+
+void controladorKILL(int id)
+{
+	printf("\nproceso muerto\n");
+	exit(0);
 }
 
 /*Adem´as, se puede pulsar Ctrl{C, lo que produce que todos los hijos reciban la se˜nal SIGINT, la cual
@@ -58,16 +64,32 @@ permanecer atento a las se˜nales que el padre env´ıe.
 
 void controladorSIGUSR2(int id)
 {
-	printf("Recibida la señal SIGUSR2: %d.\n",id);
+	pid_t nuevoHijo;
+	nuevoHijo = fork();
+	printf("Soy el PID: %d y he creado un hijo de PID: %d.\n",getpid(),nuevoHijo);
+
 }
 
 //SIGUSR2: que el proceso hijo al cual se le env´ıa la se˜nal (receptor), cree su propio hijo.
 
 void controladorSIGINT(int id)
-{
-	printf("\nRecibida la señal SIGINT: %d SOY EL HIJO CON PID :%d.\n",id,getpid());
-	
-	printf("sigo funcionando\n");
+{	int i;
+	if(contadorSIGINT == 0)
+	{
+		if(!soyHijo(hijos, hValue)){
+			printf("\n");
+			for(i = 0; i< hValue;i++){
+				kill(hijos[i],7);
+				printf("Soy el hijo con PID :%d, y estoy vivo aun. No me mates papa :(.\n",hijos[i]);
+			}
+		}
+
+	}
+	if(contadorSIGINT)
+	{
+		exit(0);
+	}
+	contadorSIGINT++;
 }
 
 /* SIGTERM: Se encarga de matar al proceso con el id correspondiente. No obstante, antes de morir
@@ -83,12 +105,6 @@ int soyHijo(pid_t* hijosProceso,int n){
 	return 0;
 }
 
-
-void printfArreglo(pid_t* res,int n){
-	int i;
-	printf("Pid proceso actual %d: [%d,%d,%d,%d]\n",getpid(),res[0],res[1],res[2],res[3]);	
-}
-
 pid_t* inicializarHijos(int numHijos, int mflag){
 	pid_t* res = (pid_t*)malloc(numHijos*sizeof(pid_t));
 	if(!res){
@@ -101,7 +117,6 @@ pid_t* inicializarHijos(int numHijos, int mflag){
 		}
 		for(i = 0; i < numHijos; i++){
 			if(soyHijo(res,numHijos)==0){
-				//printfArreglo(res,numHijos);
 				res[i] = fork();
 				if(res[i]<0){
 					printf("Error al crear proceso hijo\n");
@@ -116,36 +131,34 @@ pid_t* inicializarHijos(int numHijos, int mflag){
 	}
 }
 
-void enviarSenal(int target,int senal, pid_t *res, int cantHijos)
+void enviarSenal(int target,int senal)
 {
 	switch(senal)
 	{
 		case 2:
 		{
-			kill(getpid(),SIGINT);
+			kill(target,SIGINT);
 		}break;
 		case 9:
 		{
-			kill(getpid(),SIGTERM);
+			kill(target,SIGTERM);
 		}break;
 		case 10:
 		{
-			kill(getpid(),SIGUSR1);
+			kill(target,SIGUSR1);
 		}break;
 		case 12:
 		{
-			kill(getpid(),SIGUSR2);
+			kill(target,SIGUSR2);
 		}break;
 		default:
 		{
 			printf("Ingrese una señal valida.\n");
-			recibirSenales(res, cantHijos);
 		}
 	}
 }
 
 void recibirSenales(pid_t *res, int cantHijos){
-	int kill666 = 0;
 	int iterar = 1;
 	int pidTarget;
 	int signal;
@@ -157,9 +170,11 @@ void recibirSenales(pid_t *res, int cantHijos){
 		scanf("%d",&signal);
 		printf("\n");
 		printf("La senal %d sera enviada al hijo %d de pid %d\n",signal,pidTarget, res[pidTarget-1]);
-		if(pidTarget > cantHijos || pidTarget <= cantHijos)
+
+		//printf("Resultado kill :%d \n",kill(res[pidTarget-1],signal));
+		if(pidTarget > 0 && pidTarget <= cantHijos)
 		{
-			enviarSenal(pidTarget, signal, res, cantHijos);
+			enviarSenal(res[pidTarget-1], signal);
 		}
 		if(getchar()!=10){
 			iterar = 0;
@@ -169,12 +184,8 @@ void recibirSenales(pid_t *res, int cantHijos){
 }
 
 int main(int argc,char** argv){
-	signal(SIGTERM, controladorSIGTERM);
-	signal(SIGUSR1, controladorSIGUSR1);
-	signal(SIGUSR2, controladorSIGUSR2);
-	signal(SIGINT, controladorSIGINT);
 	//manejo de getopt
-	int hValue = 0;
+	hValue = 0;
 	int mflag = 0;
 	opterr = 0;
 	int c;
@@ -204,10 +215,14 @@ int main(int argc,char** argv){
 				abort();
 		}
 	}
-	pid_t* hijos= inicializarHijos(hValue, mflag);
-	getchar();
-/*	if(!soyHijo(hijos,hValue)){
+	hijos= inicializarHijos(hValue, mflag);
+	signal(SIGTERM, controladorSIGTERM);
+	signal(SIGUSR1, controladorSIGUSR1);
+	signal(SIGUSR2, controladorSIGUSR2);
+	signal(SIGINT, controladorSIGINT);
+	signal(7, controladorKILL);
+	if(!soyHijo(hijos,hValue)){
 		recibirSenales(hijos, hValue);
-	}*/
+	}
 	return 0;
 }
