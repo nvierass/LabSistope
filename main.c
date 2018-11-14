@@ -42,13 +42,12 @@ cierran todos los procesos.*/
 void controladorSIGUSR1(int id)
 {
 	printf("Recibida la señal SIGUSR1: %d en el proceso : %d.\n",id,getpid());
-	char  buffer[2][100];
-	snprintf(buffer[1],100," -p %d",getpid());
-	snprintf(buffer[2],100," -c %d",contadorSIGUSR1);
-	char* argv[]={buffer[1],buffer[2],(char*) NULL};
-	printf("%s\n",buffer[2]);
-	execv("./contador",argv);
 	contadorSIGUSR1 ++;
+	char  buffer[2][100];
+	snprintf(buffer[1],100,"%d",getpid());
+	snprintf(buffer[2],100,"%d",contadorSIGUSR1);
+	char* argv[]={buffer[1],buffer[2],(char*) NULL};
+	execv("./contador",argv);
 }
 /*• SIGUSR1: Al enviar esta se˜nal, el proceso con el id correspondiente deber´a crear un nuevo proceso,
 el cual ejecutar´a un archivo llamado ”contador.c” mediante el uso de alguna funci´on de la familia de
@@ -215,7 +214,7 @@ int main(int argc,char** argv){
 				abort();
 		}
 	}
-	hijos= inicializarHijos(hValue, mflag);
+	hijos = inicializarHijos(hValue, mflag);
 	signal(SIGTERM, controladorSIGTERM);
 	signal(SIGUSR1, controladorSIGUSR1);
 	signal(SIGUSR2, controladorSIGUSR2);
@@ -224,5 +223,6 @@ int main(int argc,char** argv){
 	if(!soyHijo(hijos,hValue)){
 		recibirSenales(hijos, hValue);
 	}
+	getchar();
 	return 0;
 }

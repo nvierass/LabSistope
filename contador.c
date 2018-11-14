@@ -4,6 +4,13 @@
 #include <stdlib.h>
 
 int main(int argc,char** argv){
+	printf("************CONTADOR************\n");
+	printf("Soy contador. El proceso %s me ha invocado %s veces\n",argv[0],argv[1]);
+	return 0;
+	/*int i;
+	for(i=0;i<argc;i++){
+		printf("argv[%d] = %s\n",i,argv[i]);
+	}
 	int pidSource;
 	int count;
 	opterr = 0;
@@ -19,12 +26,12 @@ int main(int argc,char** argv){
 				sscanf(optarg,"%d", &count);
 				break;
 			case '?':
-				if(optopt == 'h'){
-					fprintf(stderr, "Opcion -h requiere un argumento.\n");
+				if(optopt == 'c'){
+					fprintf(stderr, "Opcion -c requiere un argumento.\n");
 				}
 				else if(isprint(optopt))
 				{
-					fprintf(stderr, "Opcion desconocida -h.\n");
+					fprintf(stderr, "Opcion desconocida -c.\n");
 				}
 				else{
 					fprintf(stderr,"Opcion con caracter desconocido.\n");
@@ -34,5 +41,5 @@ int main(int argc,char** argv){
 				abort();
 		}
 	}
-	printf("Valores leidos: pid: %d, count: %d\n",pidSource,count );
+	printf("Valores leidos: pid: %d, count: %d\n",pidSource,count );*/
 }
