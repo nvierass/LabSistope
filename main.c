@@ -19,14 +19,12 @@ int contadorSIGINT = 0;
 pid_t* hijos;
 int hValue;
 
-
-
 void controladorSIGTERM(int id)
 {
 	printf("\nSoy el proceso %d y recibi la senal SIGTERM: %d\n",getpid(),id);
 	//printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
 	//exit(0);
-	return NULL;
+	//return NULL;
 }
 
 /*Adem´as, se puede pulsar Ctrl{C, lo que produce que todos los hijos reciban la se˜nal SIGINT, la cual
@@ -44,7 +42,7 @@ void controladorSIGUSR1(int id)
 	snprintf(buffer[2],100,"%d",contadorSIGUSR1);
 	char* argv[]={buffer[1],buffer[2],(char*) NULL};
 	execv("./contador",argv);*/
-	return NULL;
+	//return NULL;
 }
 /*• SIGUSR1: Al enviar esta se˜nal, el proceso con el id correspondiente deber´a crear un nuevo proceso,
 el cual ejecutar´a un archivo llamado ”contador.c” mediante el uso de alguna funci´on de la familia de
@@ -65,7 +63,7 @@ void controladorSIGUSR2(int id)
 	nuevoHijo = fork();
 	printf("Soy el PID: %d y he creado un hijo de PID: %d.\n",getpid(),nuevoHijo);
 	*/
-	return NULL;
+	//return NULL;
 }
 
 //SIGUSR2: que el proceso hijo al cual se le env´ıa la se˜nal (receptor), cree su propio hijo.
@@ -83,14 +81,13 @@ void controladorSIGINT(int id)
 				printf("Soy el hijo con PID :%d, y estoy vivo aun. No me mates papa :(.\n",hijos[i]);
 			}
 		}
-
 	}
 	if(contadorSIGINT)
 	{
 		exit(0);
 	}
 	contadorSIGINT++;*/
-	return NULL;
+	//return NULL;
 }
 
 /* SIGTERM: Se encarga de matar al proceso con el id correspondiente. No obstante, antes de morir
@@ -185,6 +182,11 @@ void recibirSenales(pid_t *res, int cantHijos){
 }
 
 int main(int argc,char** argv){
+	//señales
+	signal(SIGTERM, controladorSIGTERM);
+	signal(SIGUSR1, controladorSIGUSR1);
+	signal(SIGUSR2, controladorSIGUSR2);
+	signal(SIGINT, controladorSIGINT);
 	//manejo de getopt
 	hValue = 0;
 	int mflag = 0;
@@ -217,13 +219,9 @@ int main(int argc,char** argv){
 		}
 	}
 	hijos = inicializarHijos(hValue, mflag);
-	signal(SIGTERM, controladorSIGTERM);
-	signal(SIGUSR1, controladorSIGUSR1);
-	signal(SIGUSR2, controladorSIGUSR2);
-	signal(SIGINT, controladorSIGINT);
 	if(!soyHijo(hijos,hValue)){
 		recibirSenales(hijos, hValue);
 	}
-	getchar();
+	//getchar();
 	return 0;
 }
