@@ -6,7 +6,6 @@
 
 
 void controladorSIGTERM(int id);
-void controladorKILL(int id);
 void controladorSIGUSR1(int id);
 void controladorSIGUSR2(int id);
 void controladorSIGINT(int id);
@@ -24,14 +23,10 @@ int hValue;
 
 void controladorSIGTERM(int id)
 {
-	printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
-	exit(0);
-}
-
-void controladorKILL(int id)
-{
-	printf("\nproceso muerto\n");
-	exit(0);
+	printf("\nSoy el proceso %d y recibi la senal SIGTERM: %d\n",getpid(),id);
+	//printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
+	//exit(0);
+	return NULL;
 }
 
 /*Adem´as, se puede pulsar Ctrl{C, lo que produce que todos los hijos reciban la se˜nal SIGINT, la cual
@@ -41,13 +36,15 @@ cierran todos los procesos.*/
 
 void controladorSIGUSR1(int id)
 {
-	printf("Recibida la señal SIGUSR1: %d en el proceso : %d.\n",id,getpid());
+	printf("\nSoy el proceso %d y recibi la senal SIGUSR1: %d\n",getpid(),id);
+	/*printf("Recibida la señal SIGUSR1: %d en el proceso : %d.\n",id,getpid());
 	contadorSIGUSR1 ++;
 	char  buffer[2][100];
 	snprintf(buffer[1],100,"%d",getpid());
 	snprintf(buffer[2],100,"%d",contadorSIGUSR1);
 	char* argv[]={buffer[1],buffer[2],(char*) NULL};
-	execv("./contador",argv);
+	execv("./contador",argv);*/
+	return NULL;
 }
 /*• SIGUSR1: Al enviar esta se˜nal, el proceso con el id correspondiente deber´a crear un nuevo proceso,
 el cual ejecutar´a un archivo llamado ”contador.c” mediante el uso de alguna funci´on de la familia de
@@ -63,16 +60,20 @@ permanecer atento a las se˜nales que el padre env´ıe.
 
 void controladorSIGUSR2(int id)
 {
-	pid_t nuevoHijo;
+	printf("\nSoy el proceso %d y recibi la senal SIGUSR2: %d\n",getpid(),id);
+	/*pid_t nuevoHijo;
 	nuevoHijo = fork();
 	printf("Soy el PID: %d y he creado un hijo de PID: %d.\n",getpid(),nuevoHijo);
-
+	*/
+	return NULL;
 }
 
 //SIGUSR2: que el proceso hijo al cual se le env´ıa la se˜nal (receptor), cree su propio hijo.
 
 void controladorSIGINT(int id)
-{	int i;
+{	
+	printf("\nSoy el proceso %d y recibi la senal SIGINT: %d\n",getpid(),id);
+	/*int i;
 	if(contadorSIGINT == 0)
 	{
 		if(!soyHijo(hijos, hValue)){
@@ -88,7 +89,8 @@ void controladorSIGINT(int id)
 	{
 		exit(0);
 	}
-	contadorSIGINT++;
+	contadorSIGINT++;*/
+	return NULL;
 }
 
 /* SIGTERM: Se encarga de matar al proceso con el id correspondiente. No obstante, antes de morir
@@ -219,7 +221,6 @@ int main(int argc,char** argv){
 	signal(SIGUSR1, controladorSIGUSR1);
 	signal(SIGUSR2, controladorSIGUSR2);
 	signal(SIGINT, controladorSIGINT);
-	signal(7, controladorKILL);
 	if(!soyHijo(hijos,hValue)){
 		recibirSenales(hijos, hValue);
 	}
