@@ -22,25 +22,19 @@ int hValue;
 void controladorSIGTERM(int id)
 {
     printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
-    kill(getpid(),SIGKILL);
+    exit(0);
 }
-
-/*Adem´as, se puede pulsar Ctrl{C, lo que produce que todos los hijos reciban la se˜nal SIGINT, la cual
-deber´a imprimir por pantalla <Soy el hijo con pid: X, y estoy vivo a´un. No me mates pap´a>. Luego de
-ejecutar esta funci´on, tendr´a que poner la se˜nal a su defecto, tal que si se presiona nuevamente Ctrl-C se
-cierran todos los procesos.*/
 
 void controladorSIGUSR1(int id)
 {
     printf("\nSoy el proceso %d y recibi la senal SIGUSR1: %d\n",getpid(),id);
-    /*printf("Recibida la señal SIGUSR1: %d en el proceso : %d.\n",id,getpid());
+    printf("Recibida la señal SIGUSR1: %d en el proceso : %d.\n",id,getpid());
     contadorSIGUSR1 ++;
     char  buffer[2][100];
-    snprintf(buffer[1],100,"%d",getpid());
-    snprintf(buffer[2],100,"%d",contadorSIGUSR1);
-    char* argv[]={buffer[1],buffer[2],(char*) NULL};
-    execv("./contador",argv);*/
-    //return NULL;
+    snprintf(buffer[0],100,"%d",getpid());
+    snprintf(buffer[1],100,"%d",contadorSIGUSR1);
+    char* argv[]={buffer[0],buffer[1],(char*) NULL};
+    execv("./contador",argv);
 }
 /*• SIGUSR1: Al enviar esta se˜nal, el proceso con el id correspondiente deber´a crear un nuevo proceso,
 el cual ejecutar´a un archivo llamado ”contador.c” mediante el uso de alguna funci´on de la familia de
@@ -66,8 +60,6 @@ void controladorSIGUSR2(int id)
     
 }
 
-//SIGUSR2: que el proceso hijo al cual se le env´ıa la se˜nal (receptor), cree su propio hijo.
-
 void controladorSIGINT(int id)
 {   
     int i;
@@ -87,10 +79,6 @@ void controladorSIGINT(int id)
     }
     contadorSIGINT++;
 }
-
-/* SIGTERM: Se encarga de matar al proceso con el id correspondiente. No obstante, antes de morir
-el proceso deber´a escribir en consola: <Soy el hijo con pid: X y mi pap´a me quiere matar>.*/
-
 
 void enviarSenal(int target,int senal)
 {
