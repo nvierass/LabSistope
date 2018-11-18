@@ -8,7 +8,7 @@ void controladorSIGTERM(int id);
 void controladorSIGUSR1(int id);
 void controladorSIGUSR2(int id);
 void controladorSIGINT(int id);
-void enviarSenal(int target,int senal);
+int enviarSenal(int target,int senal);
 void recibirSenales(pid_t *res,int cantHijos);
 int soyHijo(pid_t* hijosProceso,int n);
 pid_t* inicializarHijos(int numHijos, int mflag);
@@ -18,13 +18,17 @@ int contadorSIGINT = 0;
 pid_t* hijos;
 int hValue;
 
-
+//Esta funcion es ejecutada cuando se le envia la señal SIGTERM a un proceso
+//se encarga de matar al proceso que se le envia la señal
 void controladorSIGTERM(int id)
 {
     printf("\nSoy el hijo con pid %d y mi papa me quiere matar :(.\n",getpid());
     exit(0);
 }
 
+
+//Esta funcion es ejecutada cuando se le envia la señal SIGUSR1 a un proceso
+//se encarga de sumar un 1 al contador
 void controladorSIGUSR1(int id)
 {
     printf("\nSoy el proceso %d y recibi la senal SIGUSR1: %d\n",getpid(),id);
@@ -36,18 +40,9 @@ void controladorSIGUSR1(int id)
     char* argv[]={buffer[0],buffer[1],(char*) NULL};
     execv("./contador",argv);
 }
-/*• SIGUSR1: Al enviar esta se˜nal, el proceso con el id correspondiente deber´a crear un nuevo proceso,
-el cual ejecutar´a un archivo llamado ”contador.c” mediante el uso de alguna funci´on de la familia de
-exec. El c´odigo contador.c debe mantener un acumulador que parte desde 0, y cada vez que se ejecuta
-esta se˜nal sobre el proceso, sumar´a uno al contador, de manera que cuando el proceso reciba la se˜nal,
-imprimir´a por pantalla:
->> pid: X, y he recibido esta llamada i veces.
-Cabe destacar que una vez finalizada la ejecuci´on de c´odigo.c, el proceso asociado a ´este debe ser
-matado (mediante cualquier m´etodo). Por lo tanto, cada vez que se ejecute SIGUSR1, se deber´a
-crear un nuevo proceso. Note que el proceso que crear al encargado de ejecutar el contador, debe
-permanecer atento a las se˜nales que el padre env´ıe.
-*/
 
+//Esta funcion es ejecutada cuando se le envia la señal SIGUSR2 a un proceso
+//se encarga de que el hijo al que se le envia la señal cree un hijo
 void controladorSIGUSR2(int id)
 {
     printf("\nSoy el proceso %d y recibi la senal SIGUSR2: %d\n",getpid(),id);
@@ -57,9 +52,10 @@ void controladorSIGUSR2(int id)
     {
         printf("Soy el PID: %d y he creado un hijo de PID: %d.\n",getpid(),nuevoHijo);
     }
-    
 }
 
+//Esta funcion es ejecutada cuando se le envia la señal SIGINT a un proceso
+//se encarga de enviar un aviso cuando se presiona Ctrl+C y de finalizar el programa se presiona denuevo
 void controladorSIGINT(int id)
 {   
     int i;
@@ -68,7 +64,6 @@ void controladorSIGINT(int id)
         if(!soyHijo(hijos, hValue)){
             printf("\n");
             for(i = 0; i< hValue;i++){
-                kill(hijos[i],7);
                 printf("Soy el hijo con PID :%d, y estoy vivo aun. No me mates papa :(.\n",hijos[i]);
             }
         }
@@ -80,7 +75,8 @@ void controladorSIGINT(int id)
     contadorSIGINT++;
 }
 
-void enviarSenal(int target,int senal)
+//Esta funcion se encarga de coordinar que señal envíar a que hijo una vez ingresada la solicitud por parte del usuario
+int enviarSenal(int target,int senal)
 {
     switch(senal)
     {
@@ -105,33 +101,34 @@ void enviarSenal(int target,int senal)
             printf("Ingrese una señal valida.\n");
         }
     }
+    return 0;
 }
 
+//Esta funcion solicita al usuario ingresar el hijo y la señal que desea enviar
 void recibirSenales(pid_t *res, int cantHijos){
     int iterar = 1;
     int pidTarget;
     int signal;
     while(iterar != 0){
-        printf("Ingrese el número del proceso al que desea enviar una señal: ");
+        printf("\n----------------------------------------------------------------------");
+        printf("\nIngrese el número del proceso al que desea enviar una señal: ");
         scanf("%d",&pidTarget);
-        printf("\n");
         printf("Ingrese la señal que se enviara al proceso %d: ",pidTarget);
         scanf("%d",&signal);
-        printf("\n");
-        printf("La senal %d sera enviada al hijo %d de pid %d\n",signal,pidTarget, res[pidTarget-1]);
-
-        //printf("Resultado kill :%d \n",kill(res[pidTarget-1],signal));
-        if(pidTarget > 0 && pidTarget <= cantHijos)
-        {
-            enviarSenal(res[pidTarget-1], signal);
+        
+        if(enviarSenal(res[pidTarget-1], signal)){}
+        else{
+            printf("No se pudo enviar la señal al proceso indicado\n");
         }
         if(getchar()!=10){
             iterar = 0;
         }
+        getchar();
     }
     
 }
 
+//Esta funcion verifica si los procesos son hijos
 int soyHijo(pid_t* hijosProceso,int n){
     int i;
     for(i = 0; i < n; i++){
@@ -142,6 +139,7 @@ int soyHijo(pid_t* hijosProceso,int n){
     return 0;
 }
 
+//Esta funcion inicializa los hijos solicitados como parametro de entrada
 pid_t* inicializarHijos(int numHijos, int mflag){
     pid_t* res = (pid_t*)malloc(numHijos*sizeof(pid_t));
     if(!res){
