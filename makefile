@@ -1,2 +1,3 @@
 all: main.c
-	gcc -o lab main.c -I.
+	gcc -o Laboratorio1 main.c -I.
+	gcc -o contador contador.c -I.
